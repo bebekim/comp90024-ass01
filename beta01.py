@@ -29,13 +29,25 @@ def parse_grid(json_filename):
     with open(json_filename, 'rb') as input_file:
         #load json iteratively
         # ijson.items should eliminate items without coordinate entries
+        rows = ijson.items ( input_file, 'rows.item.doc' )
+        melbourne_rows = (r for r in rows if r[ 'location' ] == 'melbourne')
 
         coordinates = ijson.items(input_file, 'rows.item.doc.coordinates.coordinates')
         post_counter = Counter()
         row_counter = Counter()
         col_counter = Counter()
+        for r in melbourne_rows:
+            if r.get ( 'coordinates' ) is not None:
+                # print( r.keys() )
+                # valid_row += 1
+                found_grid( grid, r, post_counter, row_counter, col_counter)
+            # else:
+            #     # r is a dictionary
+            #     print ( r.keys () )
+            #     invalid_row += 1
+
         for coordinate in coordinates:
-            if is_melbourne( grid, coordinate, post_counter, row_counter, col_counter ):
+            if found_grid( grid, coordinate, post_counter, row_counter, col_counter ):
                 pass
         display_counter(post_counter, 'grid')
         display_counter(row_counter, 'row')
@@ -43,43 +55,12 @@ def parse_grid(json_filename):
 
 
 
-def is_melbourne(grid, coordinates, counter, row_counter, col_counter):
+def found_grid(grid, coordinates, counter, row_counter, col_counter):
     for g in grid:
         if not (not (g['ymin'] < coordinates[0] <= g["ymax"]) or not (g['xmin'] < coordinates[1] <= g['xmax'])):
             counter.update([g['id']])
             row_counter.update(g['id'][0])
             col_counter.update(g['id'][1])
-            return True
-
-# locations = ijson.items ( input_file, 'rows.item.doc.location' )
-# posts_melbourne = (loc for loc in locations if loc[ 'location' ] is 'melbourne')
-
-def display_counter(counter, data_type):
-    print('\nRank by {0}'.format(data_type))
-    for key, value in counter.most_common():
-        print('{0}: {1} posts'.format(key, value))
-
-
-
-input_file = open ( instagram_json, 'rb' )
-coordinates = ijson.items ( input_file, 'rows.item.doc.coordinates.coordinates' )
-
-rows = ijson.items( input_file , 'rows.item.doc' )
-melbourne_rows = (r for r in rows if r['location'] == 'melbourne')
-valid_row = 0
-invalid_row = 0
-
-for r in melbourne_rows:
-    if r.get('coordinates') is not None:
-        # print( r.keys() )
-        valid_row += 1
-    else:
-        # r is a dictionary
-        print ( r.keys() )
-        invalid_row += 1
-
-print(valid_row)
-print(invalid_row)
 
 
 # valid_coord = 0
@@ -111,6 +92,16 @@ print(invalid_row)
 #
 # print(valid_coord)
 # print(invalid_coord)
+
+
+# locations = ijson.items ( input_file, 'rows.item.doc.location' )
+# posts_melbourne = (loc for loc in locations if loc[ 'location' ] is 'melbourne')
+
+def display_counter(counter, data_type):
+    print('\nRank by {0}'.format(data_type))
+    for key, value in counter.most_common():
+        print('{0}: {1} posts'.format(key, value))
+
 
 
 
